@@ -81,37 +81,36 @@ SEARCH_PROMPT = ChatPromptTemplate.from_messages(
         ("system", "{agent_prompt}"),
         (
             "user",
-            "Write 3 google search queries to search online that form an "
-            "objective opinion from the following: {question}\n"
-            "You must respond with a list of strings in the following format: "
-            '["query 1", "query 2", "query 3"].',
+            "Schreibe 5 Google-Suchanfragen, um online eine objektive Meinung zu folgender Frage zu finden: {question}\n"
+            "Du musst mit einer Liste von Strings im folgenden Format antworten: "
+            '["Anfrage 1", "Anfrage 2", "Anfrage 3"].'
         ),
     ]
 )
 
 AUTO_AGENT_INSTRUCTIONS = """
-This task involves researching a given topic, regardless of its complexity or the availability of a definitive answer. The research is conducted by a specific agent, defined by its type and role, with each agent requiring distinct instructions.
+Diese Aufgabe beinhaltet die Recherche zu einem gegebenen Thema, unabhängig von seiner Komplexität oder der Verfügbarkeit einer definitiven Antwort. Die Recherche wird von einem spezifischen Agenten durchgeführt, definiert durch seinen Typ und seine Rolle, wobei jeder Agent unterschiedliche Anweisungen benötigt.
 Agent
-The agent is determined by the field of the topic and the specific name of the agent that could be utilized to research the topic provided. Agents are categorized by their area of expertise, and each agent type is associated with a corresponding emoji.
+Der Agent wird durch das Gebiet des Themas und den spezifischen Namen des Agenten bestimmt, der zur Erforschung des gegebenen Themas genutzt werden könnte. Agenten sind nach ihrem Fachgebiet kategorisiert, und jeder Agententyp ist einem entsprechenden Emoji zugeordnet.
 
 examples:
-task: "should I invest in apple stocks?"
+task: "Sollte ich in Apple-Aktien investieren?"
 response: 
 {
-    "agent": "💰 Finance Agent",
-    "agent_role_prompt: "You are a seasoned finance analyst AI assistant. Your primary goal is to compose comprehensive, astute, impartial, and methodically arranged financial reports based on provided data and trends."
+    "agent": "💰 Finanz Agent",
+    "agent_role_prompt: "Du bist ein erfahrener Finanzanalyse-KI-Assistent. Dein Hauptziel ist es, umfassende, scharfsinnige, unparteiische und methodisch strukturierte Finanzberichte auf Basis der bereitgestellten Daten und Trends zu erstellen."
 }
-task: "could reselling sneakers become profitable?"
+task: "Könnte der Weiterverkauf von Sneakern profitabel werden?"
 response: 
 { 
     "agent":  "📈 Business Analyst Agent",
-    "agent_role_prompt": "You are an experienced AI business analyst assistant. Your main objective is to produce comprehensive, insightful, impartial, and systematically structured business reports based on provided business data, market trends, and strategic analysis."
+    "agent_role_prompt": "Du bist ein erfahrener KI-Business-Analyst-Assistent. Dein Hauptziel ist es, umfassende, aufschlussreiche, unparteiische und systematisch strukturierte Geschäftsberichte auf Basis von bereitgestellten Geschäftsdaten, Markttrends und strategischen Analysen zu produzieren"
 }
-task: "what are the most interesting sites in Tel Aviv?"
+task: "Was sind die interessantesten Orte in Tel Aviv?"
 response:
 {
-    "agent:  "🌍 Travel Agent",
-    "agent_role_prompt": "You are a world-travelled AI tour guide assistant. Your main purpose is to draft engaging, insightful, unbiased, and well-structured travel reports on given locations, including history, attractions, and cultural insights."
+    "agent:  "🌍 Reise Agent",
+    "agent_role_prompt": "Du bist ein weltgereister KI-Reiseführer-Assistent. Dein Hauptzweck ist es, fesselnde, aufschlussreiche, unvoreingenommene und gut strukturierte Reiseberichte über gegebene Orte zu verfassen, einschließlich Geschichte, Attraktionen und kulturellen Einblicken."
 }
 """  # noqa: E501
 CHOOSE_AGENT_PROMPT = ChatPromptTemplate.from_messages(
@@ -122,12 +121,12 @@ SUMMARY_TEMPLATE = """{text}
 
 -----------
 
-Using the above text, answer in short the following question: 
+Mit dem obigen Text, beantworte kurz die folgende Frage:
 
 > {question}
  
 -----------
-if the question cannot be answered using the text, imply summarize the text. Include all factual information, numbers, stats etc if available."""  # noqa: E501
+Falls die Frage nicht mit dem Text beantwortet werden kann, fasse den Text kurz zusammen. Schließe alle faktischen Informationen, Zahlen, Statistiken usw. ein, falls verfügbar."""  # noqa: E501
 SUMMARY_PROMPT = ChatPromptTemplate.from_template(SUMMARY_TEMPLATE)
 
 scrape_and_summarize: Runnable[Any, Any] = (
@@ -140,7 +139,7 @@ scrape_and_summarize: Runnable[Any, Any] = (
     )
     | RunnableParallel(
         {
-            "summary": SUMMARY_PROMPT | ChatOpenAI(temperature=0) | StrOutputParser(),
+            "summary": SUMMARY_PROMPT | ChatOpenAI(model="gpt-3.5-turbo-1106", temperature=0) | StrOutputParser(),
             "url": lambda x: x["url"],
         }
     )
@@ -157,9 +156,11 @@ def load_json(s):
         return {}
 
 
-search_query = SEARCH_PROMPT | ChatOpenAI(temperature=0) | StrOutputParser() | load_json
+search_query = SEARCH_PROMPT | ChatOpenAI(model="gpt-3.5-turbo-1106",
+                                          temperature=0) | StrOutputParser() | load_json
 choose_agent = (
-    CHOOSE_AGENT_PROMPT | ChatOpenAI(temperature=0) | StrOutputParser() | load_json
+    CHOOSE_AGENT_PROMPT | ChatOpenAI(model="gpt-3.5-turbo-1106",
+                                     temperature=0) | StrOutputParser() | load_json
 )
 
 get_search_queries = (
